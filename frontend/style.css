@@ -3,14 +3,26 @@ body {
     font-size: 24px;
     margin: 0;
     padding: 0;
+    background-color: #1a3725;
+    color: white;
 }
 
 header {
-    background-color: #2c5d3f;
     color: white;
     padding: 20px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-logo{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-logo .fish-icon{
+    font-size: 24px;
 }
 
 .header-buttons {
@@ -21,7 +33,7 @@ header {
 .header-buttons button {
     padding: 10px;
     border: none;
-    background-color: #4CAF50;
+    background-color: #416d52;
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -75,22 +87,24 @@ header {
 }
 
 .sidebar {
-    background-color: #f1f1f1;
+    background-color: #1a3725;
     padding: 10px;
     width: 200px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
 .sidebar-option {
+    margin-top: 20px;
     display: block;
     width: 100%;
     height: 50px;
-    padding: 10px;
-    margin-bottom: 5px;
-    background-color: #2c5d3f;
-    border: 1px solid #ddd;
+    padding: 5px;
+    margin-bottom: 2px;
+    background-color: #416d52;
+    border: 1px solid #6b8d78;
     cursor: pointer;
     text-align: left;
+    border-radius: 10px;
 }
 
 .sidebar-option:hover {
@@ -100,21 +114,99 @@ header {
 .content {
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
     flex: 1;
     padding: 20px;
+    gap: 10px;
 }
 
 .icon {
     text-align: center;
     cursor: pointer;
+    background-color: #1a3725;
+    padding: 10px;
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-box {
+    text-align: center;
+    background-color: #416d52;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    height: calc(100vh - 265px); /* Adjust this */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .icon img {
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
+    border-radius: 5px;
 }
 
 .icon p {
     margin-top: 10px;
+    color: white;
+}
+
+.profile-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #4CAF50;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-header h2 {
+    margin: 0;
+    padding: 10px;
+    background-color: #2c5d3f;
+    border-radius: 5px;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-section {
+    padding: 15px;
+    background-color: #3e8e41;
+    border-radius: 10px;
+}
+
+.profile-section h3 {
+    margin-top: 0;
+    color: white;
+}
+
+.profile-section p, .profile-section ul {
+    margin: 10px 0;
+    color: white;
+}
+
+#saved-searches {
+    list-style-type: none;
+    padding: 0;
+}
+
+#saved-searches li {
+    background-color: #2c5d3f;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
 }
