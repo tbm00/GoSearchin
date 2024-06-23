@@ -1,3 +1,5 @@
+# Handles HTTP requests for searches
+
 from flask import Blueprint, request, jsonify
 from services.google_search import perform_search
 

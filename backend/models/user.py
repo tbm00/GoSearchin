@@ -1,3 +1,5 @@
+# Responsible for interacting with database
+
 import requests
 from dbConnector import dbConnector
 from geopy.geocoders import Nominatim
@@ -9,6 +11,16 @@ class User:
         self.geocoder = Nominatim(user_agent='user_location')
         self.google_api_key = 'INSERT GOOGLE API KEY'
 
+    def get_user(self):
+        try:
+            with self.db.connection_pool.get_connection() as conn:
+                with conn.cursor(dictionary=True) as cursor:
+                    query = "SELECT * FROM Accounts WHERE username = %s"
+                    cursor.execute(query, (self.username,))
+                    return cursor.fetchone()
+        except Exception as e:
+            print(f"Error retrieving user: {e}")
+            return None
 
     def insert_user(self):
         try:
@@ -20,6 +32,32 @@ class User:
                     print("User inserted successfully")
         except Exception as e:
             print(f"Error inserting user: {e}")
+
+    def update_user(self, data):
+        try:
+            with self.db.connection_pool.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    update_query = "UPDATE Accounts SET email = %s WHERE username = %s"
+                    cursor.execute(update_query, (data['email'], self.username))
+                    conn.commit()
+                    print("User updated successfully")
+                    return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error updating user: {e}")
+            return False
+
+    def delete_user(self):
+        try:
+            with self.db.connection_pool.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    delete_query = "DELETE FROM Accounts WHERE username = %s"
+                    cursor.execute(delete_query, (self.username,))
+                    conn.commit()
+                    print("User deleted successfully")
+                    return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
 
     def insert_query(self, query_text):
         try:
