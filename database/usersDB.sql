@@ -2,20 +2,17 @@ CREATE DATABASE IF NOT EXISTS usersDB;
 
 USE usersDB;
 
+CREATE TABLE IF NOT EXISTS Location (
+  location_id INT AUTO_INCREMENT PRIMARY KEY,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8)
+);
+
 CREATE TABLE IF NOT EXISTS Accounts (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(50) NOT NULL,
   location_id INT,
   FOREIGN KEY (location_id) REFERENCES Location(location_id)
-);
-
-CREATE TABLE IF NOT EXISTS Location (
-  location_id INT AUTO_INCREMENT PRIMARY KEY,
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
-  city VARCHAR(100),
-  state VARCHAR(100),
-  country VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS search_queries (
