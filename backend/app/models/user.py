@@ -5,14 +5,13 @@ import json
 from geopy.geocoders import Nominatim
 from .dbConnector import dbConnector
 from ..services.weather import get_weather_data
-#from datetime import datetime
+from flask import current_app
 
 class User:
     def __init__(self, username):
         self.username = username
         self.db = dbConnector()
         self.geocoder = Nominatim(user_agent='user_location')
-        self.google_api_key = 'INSERT GOOGLE API KEY' # I don't think this should be needed anymore?
 
     def get_user(self):
         try:
@@ -66,7 +65,7 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    insert_query = "INSERT INTO search_queries (user_id, query_text) VALUES ((SELECT user_id FROM Accounts WHERE username = %s), %s)"
+                    insert_query = "INSERT INTO Queries (user_id, query_text) VALUES ((SELECT user_id FROM Accounts WHERE username = %s), %s)"
                     user_query = (self.username, query_text)
                     cursor.execute(insert_query, user_query)
                     conn.commit()
@@ -77,7 +76,7 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    get_query = "SELECT query_text FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s)"
+                    get_query = "SELECT query_text FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s)"
                     user_query = (self.username,)
                     cursor.execute(get_query, user_query)
                     return cursor.fetchall()
@@ -89,7 +88,7 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    delete_query = "DELETE FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s"
+                    delete_query = "DELETE FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s"
                     user_query = (self.username, query_text)
                     cursor.execute(delete_query, user_query)
                     conn.commit()
@@ -98,10 +97,11 @@ class User:
 
     def get_user_location(self):
         try:
+            google_api_key = current_app.config['GOOGLE_API_KEY']
             response = requests.post(
-            "https://www.googleapis.com/geolocation/v1/geolocate",
-            json={},
-            params={"key": self.google_api_key}
+                "https://www.googleapis.com/geolocation/v1/geolocate",
+                json={},
+                params={"key": google_api_key}
             )
 
             if response.status_code == 200:
@@ -169,8 +169,8 @@ class User:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
                     insert_result_query = """
-                        INSERT INTO results (query_id, result_text) 
-                        VALUES ((SELECT query_id FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s), %s)
+                        INSERT INTO Results (query_id, result_text) 
+                        VALUES ((SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s), %s)
                     """
                     user_query = (self.username, query, result_text)
                     cursor.execute(insert_result_query, user_query)
@@ -183,8 +183,8 @@ class User:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
                     delete_result_query = """
-                        DELETE FROM results 
-                        WHERE query_id = (SELECT query_id FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s) 
+                        DELETE FROM Results 
+                        WHERE query_id = (SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s) 
                         AND result_text = %s
                     """
                     user_query = (self.username, query, result_text)
@@ -199,9 +199,9 @@ class User:
                 with conn.cursor() as cursor:
                     get_results_query = """
                         SELECT result_text 
-                        FROM results 
+                        FROM Results 
                         WHERE query_id = 
-                        (SELECT query_id FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s)
+                        (SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s)
                     """
                     user_query = (self.username, query)
                     cursor.execute(get_results_query, user_query)
