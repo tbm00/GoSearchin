@@ -1,6 +1,7 @@
-import unittest
 import os
 import sys
+import unittest
+from unittest.mock import patch, MagicMock
 
 # Ensure the app directory is in the sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
@@ -13,7 +14,8 @@ from app.config import Config
 
 class TestGoFish(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    @patch('app.models.dbConnector.dbConnector.get_connection', return_value=MagicMock())
+    def setUpClass(cls, mock_db):
         cls.db = dbConnector()
         cls.test_user = User("test_user")
 

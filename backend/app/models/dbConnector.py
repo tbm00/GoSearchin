@@ -5,10 +5,10 @@ from config import Config
 class dbConnector:
     def __init__(self):
         self.dbconfig = {
-            "host": "localhost", #Assumption is MYSQL run locally 
-            "user": "username",  # Replace with MYSQL username
-            "password": "password",  # Replace with MySQL password
-            "database": "usersDB"
+            "host": Config.MYSQL_HOST,
+            "user": Config.MYSQL_USER,
+            "password": Config.MYSQL_PASSWORD,
+            "database": Config.MYSQL_DB
         }
         self.connection_pool = pooling.MySQLConnectionPool(
             pool_name="mypool",
