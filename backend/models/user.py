@@ -1,15 +1,18 @@
 # Responsible for interacting with database
 
 import requests
+import json
 from dbConnector import dbConnector
 from geopy.geocoders import Nominatim
+from services.weather import get_weather_data
+#from datetime import datetime
 
 class User:
     def __init__(self, username):
         self.username = username
         self.db = dbConnector()
         self.geocoder = Nominatim(user_agent='user_location')
-        self.google_api_key = 'INSERT GOOGLE API KEY'
+        self.google_api_key = 'INSERT GOOGLE API KEY' # I don't think this should be needed anymore?
 
     def get_user(self):
         try:
@@ -70,13 +73,13 @@ class User:
         except Exception as e:
             print(f"Error inserting query: {e}")
 
-    def retrieve_queries(self):
+    def get_queries(self):
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    retrieve_query = "SELECT query_text FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s)"
+                    get_query = "SELECT query_text FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s)"
                     user_query = (self.username,)
-                    cursor.execute(retrieve_query, user_query)
+                    cursor.execute(get_query, user_query)
                     return cursor.fetchall()
         except Exception as e:
             print(f"Error retrieving queries: {e}")
@@ -146,14 +149,17 @@ class User:
         except Exception as e:
             print(f"Error updating location in DB: {e}")
 
-    def retrieve_location(self):
+    def get_location(self):
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    retrieve_location_query = "SELECT latitude, longitude FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)"
+                    get_location_query = "SELECT latitude, longitude FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)"
                     user_query = (self.username,)
-                    cursor.execute(retrieve_location_query, user_query)
-                    return cursor.fetchone()
+                    cursor.execute(get_location_query, user_query) # Not sure why user query is passed
+                    result = cursor.fetchone()
+                    if result:
+                        return result
+                    return None
         except Exception as e:
             print(f"Error retrieving location: {e}")
             return None
@@ -187,19 +193,69 @@ class User:
         except Exception as e:
             print(f"Error deleting search result: {e}")
 
-    def retrieve_search_results(self, query):
+    def get_search_results(self, query):
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    retrieve_results_query = """
+                    get_results_query = """
                         SELECT result_text 
                         FROM results 
                         WHERE query_id = 
                         (SELECT query_id FROM search_queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s)
                     """
                     user_query = (self.username, query)
-                    cursor.execute(retrieve_results_query, user_query)
+                    cursor.execute(get_results_query, user_query)
                     return cursor.fetchall()
         except Exception as e:
             print(f"Error retrieving search results: {e}")
             return None
+
+    def store_weather_data(self, weather_data):
+        try:
+            with self.db.connection_pool.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    insert_weather_data_query = """
+                        UPDATE Location 
+                        SET weather_data = %s 
+                        WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)
+                    """
+                    cursor.execute(insert_weather_data_query, (json.dumps(weather_data), self.username))
+                    conn.commit()
+                    print("Weather data stored successfully")
+        except Exception as e:
+            print(f"Error storing weather data: {e}")
+
+    def get_weather_data(self):
+        try:
+            with self.db.connection_pool.get_connection() as conn:
+                with conn.cursor(dictionary=True) as cursor:
+                    get_weather_data_query = """
+                        SELECT weather_data 
+                        FROM Location 
+                        WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)
+                    """
+                    cursor.execute(get_weather_data_query, (self.username,))
+                    result = cursor.fetchone()
+                    return json.loads(result['weather_data']) if result and 'weather_data' in result else None
+        except Exception as e:
+            print(f"Error retrieving weather data: {e}")
+            return None
+
+    def get_lat_lon(self, address):
+        try:
+            location = self.geocoder.geocode(address)
+            if location:
+                return location.latitude, location.longitude
+            print(f"Geocoding failed for address: {address}")
+            return None, None
+        except Exception as e:
+            print(f"Error during geocoding: {e}")
+            return None, None
+        
+    def get_weather(self):
+        location = self.get_location()
+        if location:
+            latitude, longitude = self.get_lat_lon(location)
+            if latitude is not None and longitude is not None:
+                return get_weather_data(latitude, longitude)
+        return None

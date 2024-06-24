@@ -5,7 +5,8 @@ USE usersDB;
 CREATE TABLE IF NOT EXISTS Location (
   location_id INT AUTO_INCREMENT PRIMARY KEY,
   latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8)
+  longitude DECIMAL(11, 8),
+  weather_data JSON
 );
 
 CREATE TABLE IF NOT EXISTS Accounts (
