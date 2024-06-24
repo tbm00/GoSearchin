@@ -1,7 +1,7 @@
 # Handles HTTP requests for users
 
 from flask import Blueprint, request, jsonify
-from models.user import get_user, insert_user, update_user, delete_user
+from ..models.user import get_user, insert_user, update_user, delete_user
 
 user_bp = Blueprint('user', __name__)
 

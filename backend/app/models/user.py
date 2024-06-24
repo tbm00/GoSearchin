@@ -2,9 +2,9 @@
 
 import requests
 import json
-from dbConnector import dbConnector
 from geopy.geocoders import Nominatim
-from services.weather import get_weather_data
+from .dbConnector import dbConnector
+from ..services.weather import get_weather_data
 #from datetime import datetime
 
 class User:

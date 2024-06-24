@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import pooling, Error
+from config import Config
 
 class dbConnector:
     def __init__(self):
@@ -17,3 +18,8 @@ class dbConnector:
 
     def get_connection(self):
         return self.connection_pool.get_connection()
+    
+    def close_connection(self, connection):
+        if connection.is_connected():
+            connection.close()
+            print("MySQL connection is closed")
