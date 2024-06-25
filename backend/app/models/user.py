@@ -4,7 +4,7 @@ import requests
 import json
 from geopy.geocoders import Nominatim
 from .dbConnector import dbConnector
-from ..services.weather import get_weather_data
+from ..weather import get_weather_data
 from flask import current_app
 
 class User:

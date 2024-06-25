@@ -1,0 +1,30 @@
+<!-- templates/results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Search Results</h1>
+    </header>
+    <div class="results">
+        {% if results %}
+            <ul>
+                {% for result in results %}
+                    <li>
+                        <a href="{{ result['link'] }}" target="_blank">{{ result['title'] }}</a>
+                        <p>{{ result['snippet'] }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    </div>
+    <a href="/">Back to search</a>
+</body>
+</html>
