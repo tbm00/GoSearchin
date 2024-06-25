@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - GoFish</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
+</head>
+
+<body>
+    <header>
+        <div class="header-logo">
+            <span class="fish-icon">&#128031;</span>
+            <span>GoFish</span>
+        </div>
+        <div class="header-buttons">
+            <button onclick="navigateTo('index.html')">Home</button>
+            <button onclick="navigateTo('settings.html')">Settings</button>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h2>User Profile</h2>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-section">
+                <h3>User Information</h3>
+                <p><strong>Location:</strong> <span id="user-location">New York, USA</span></p>
+                <p><strong>Weather:</strong> <span id="user-weather">Sunny, 25°C</span></p>
+                <p><strong>Fishing Gear:</strong> <span id="user-gear">Rod, Reel, Bait</span></p>
+                <p><strong>Skill Set:</strong> <span id="user-skill">Novice Fisherman</span></p>
+            </div>
+
+            <div class="profile-section">
+                <h3>Saved Searches</h3>
+                <ul id="saved-searches">
+                    <li>Best fishing spots in New York</li>
+                    <li>Top fishing gear for beginners</li>
+                    <li>Fishing regulations in the USA</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
