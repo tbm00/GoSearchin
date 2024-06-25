@@ -28,6 +28,16 @@ class dbConnector:
 
     def create_schema(self):
         schema_queries = [
+
+            """
+            CREATE TABLE IF NOT EXISTS Location (
+                location_id INT AUTO_INCREMENT PRIMARY KEY,
+                latitude DECIMAL(9,6),
+                longitude DECIMAL(9,6),
+                weather_data JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
             """
             CREATE TABLE IF NOT EXISTS Accounts (
                 user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,15 +60,7 @@ class dbConnector:
                 INDEX (user_id)
             );
             """,
-            """
-            CREATE TABLE IF NOT EXISTS Location (
-                location_id INT AUTO_INCREMENT PRIMARY KEY,
-                latitude DECIMAL(9,6),
-                longitude DECIMAL(9,6),
-                weather_data JSON,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            """,
+
             """
             CREATE TABLE IF NOT EXISTS Results (
                 result_id INT AUTO_INCREMENT PRIMARY KEY,
