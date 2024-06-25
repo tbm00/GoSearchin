@@ -1,4 +1,4 @@
-from dbConnector import dbConnector  # Assuming your db_connector module is named like this
+from app.models.dbConnector import dbConnector
 
 def test_create_schema():
     # Initialize the database connector
