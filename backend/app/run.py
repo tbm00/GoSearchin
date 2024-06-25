@@ -1,5 +1,6 @@
 import os
 import sys
+import __init__
 
 # Add the parent directory of 'app' to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
