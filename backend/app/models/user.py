@@ -8,7 +8,8 @@ from ..services.weather import get_weather_data
 from flask import current_app
 
 class User:
-    def __init__(self, username):
+    def __init__(self, user_id=None, username=None):
+        self.user_id = user_id
         self.username = username
         self.db = dbConnector()
         self.geocoder = Nominatim(user_agent='user_location')
@@ -17,9 +18,18 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor(dictionary=True) as cursor:
-                    query = "SELECT * FROM Accounts WHERE username = %s"
-                    cursor.execute(query, (self.username,))
-                    return cursor.fetchone()
+                    if self.user_id:
+                        query = "SELECT * FROM Accounts WHERE user_id = %s"
+                        cursor.execute(query, (self.user_id,))
+                    elif self.username:
+                        query = "SELECT * FROM Accounts WHERE username = %s"
+                        cursor.execute(query, (self.username,))
+                    else:
+                        return None
+                    user_data = cursor.fetchone()
+                    if user_data:
+                        self.user_id = user_data['user_id']  # Update the instance with the user_id
+                    return user_data
         except Exception as e:
             print(f"Error retrieving user: {e}")
             return None
@@ -31,6 +41,7 @@ class User:
                     insert_user_query = "INSERT INTO Accounts (username) VALUES (%s)"
                     cursor.execute(insert_user_query, (self.username,))
                     conn.commit()
+                    self.user_id = cursor.lastrowid # store inserted user's ID to self
                     print("User inserted successfully")
         except Exception as e:
             print(f"Error inserting user: {e}")
@@ -39,8 +50,8 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    update_query = "UPDATE Accounts SET email = %s WHERE username = %s"
-                    cursor.execute(update_query, (data['email'], self.username))
+                    update_query = "UPDATE Accounts SET email = %s WHERE user_id = %s"
+                    cursor.execute(update_query, (data['email'], self.user_id))
                     conn.commit()
                     print("User updated successfully")
                     return cursor.rowcount > 0
@@ -52,8 +63,8 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    delete_query = "DELETE FROM Accounts WHERE username = %s"
-                    cursor.execute(delete_query, (self.username,))
+                    delete_query = "DELETE FROM Accounts WHERE user_id = %s"
+                    cursor.execute(delete_query, (self.user_id,))
                     conn.commit()
                     print("User deleted successfully")
                     return cursor.rowcount > 0
@@ -65,9 +76,8 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    insert_query = "INSERT INTO Queries (user_id, query_text) VALUES ((SELECT user_id FROM Accounts WHERE username = %s), %s)"
-                    user_query = (self.username, query_text)
-                    cursor.execute(insert_query, user_query)
+                    insert_query = "INSERT INTO Queries (user_id, query_text) VALUES (%s, %s)"
+                    cursor.execute(insert_query, (self.user_id, query_text))
                     conn.commit()
         except Exception as e:
             print(f"Error inserting query: {e}")
@@ -76,9 +86,8 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    get_query = "SELECT query_text FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s)"
-                    user_query = (self.username,)
-                    cursor.execute(get_query, user_query)
+                    get_query = "SELECT query_text FROM Queries WHERE user_id = %s"
+                    cursor.execute(get_query, (self.user_id,))
                     return cursor.fetchall()
         except Exception as e:
             print(f"Error retrieving queries: {e}")
@@ -88,12 +97,12 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    delete_query = "DELETE FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s"
-                    user_query = (self.username, query_text)
-                    cursor.execute(delete_query, user_query)
+                    delete_query = "DELETE FROM Queries WHERE user_id = %s AND query_text = %s"
+                    cursor.execute(delete_query, (self.user_id, query_text))
                     conn.commit()
         except Exception as e:
             print(f"Error deleting query: {e}")
+
 
     def get_user_location(self):
         try:
@@ -141,9 +150,9 @@ class User:
                 with conn.cursor() as cursor:
                     update_location_query = """
                         UPDATE Location SET latitude = %s, longitude = %s 
-                        WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)
+                        WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)
                     """
-                    location_data = (latitude, longitude, self.username)
+                    location_data = (latitude, longitude, self.user_id)
                     cursor.execute(update_location_query, location_data)
                     conn.commit()
         except Exception as e:
@@ -153,9 +162,8 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    get_location_query = "SELECT latitude, longitude FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)"
-                    user_query = (self.username,)
-                    cursor.execute(get_location_query, user_query) # Not sure why user query is passed
+                    get_location_query = "SELECT latitude, longitude FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)"
+                    cursor.execute(get_location_query, (self.user_id,))
                     result = cursor.fetchone()
                     if result:
                         return result
@@ -170,9 +178,9 @@ class User:
                 with conn.cursor() as cursor:
                     insert_result_query = """
                         INSERT INTO Results (query_id, result_text) 
-                        VALUES ((SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s), %s)
+                        VALUES ((SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s), %s)
                     """
-                    user_query = (self.username, query, result_text)
+                    user_query = (self.user_id, query, result_text)
                     cursor.execute(insert_result_query, user_query)
                     conn.commit()
         except Exception as e:
@@ -184,10 +192,10 @@ class User:
                 with conn.cursor() as cursor:
                     delete_result_query = """
                         DELETE FROM Results 
-                        WHERE query_id = (SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s) 
+                        WHERE query_id = (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s) 
                         AND result_text = %s
                     """
-                    user_query = (self.username, query, result_text)
+                    user_query = (self.user_id, query, result_text)
                     cursor.execute(delete_result_query, user_query)
                     conn.commit()
         except Exception as e:
@@ -201,9 +209,9 @@ class User:
                         SELECT result_text 
                         FROM Results 
                         WHERE query_id = 
-                        (SELECT query_id FROM Queries WHERE user_id = (SELECT user_id FROM Accounts WHERE username = %s) AND query_text = %s)
+                        (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s)
                     """
-                    user_query = (self.username, query)
+                    user_query = (self.user_id, query)
                     cursor.execute(get_results_query, user_query)
                     return cursor.fetchall()
         except Exception as e:
@@ -217,9 +225,9 @@ class User:
                     insert_weather_data_query = """
                         UPDATE Location 
                         SET weather_data = %s 
-                        WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)
+                        WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)
                     """
-                    cursor.execute(insert_weather_data_query, (json.dumps(weather_data), self.username))
+                    cursor.execute(insert_weather_data_query, (json.dumps(weather_data), self.user_id))
                     conn.commit()
                     print("Weather data stored successfully")
         except Exception as e:
@@ -232,9 +240,9 @@ class User:
                     get_weather_data_query = """
                         SELECT weather_data 
                         FROM Location 
-                        WHERE location_id = (SELECT location_id FROM Accounts WHERE username = %s)
+                        WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)
                     """
-                    cursor.execute(get_weather_data_query, (self.username,))
+                    cursor.execute(get_weather_data_query, (self.user_id,))
                     result = cursor.fetchone()
                     return json.loads(result['weather_data']) if result and 'weather_data' in result else None
         except Exception as e:
