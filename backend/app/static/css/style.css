@@ -75,6 +75,39 @@ header {
     cursor: pointer;
 }
 
+/* Style for the sidebar options */
+.sidebar-option {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #416d52;
+    border: 1px solid #6b8d78;
+    color: white;
+    text-align: left;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.sidebar-option.selected {
+    background-color: #45a049; /* Change background color when selected */
+}
+
+/* Style for the check mark */
+.sidebar-option::before {
+    content: "\2713"; /* Unicode for check mark */
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.sidebar-option.selected::before {
+    display: none; /* Hide the check mark when selected */
+}
+
+
 .container {
     display: flex;
     flex-direction: column;

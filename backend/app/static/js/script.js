@@ -45,6 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    function toggleOption(button) {
+        button.classList.toggle('selected');
+        
+        let selectedCategories = [];
+        document.querySelectorAll('.sidebar-option.selected').forEach(option => {
+            selectedCategories.push(option.dataset.category);
+        });
+    
+        // Here you can update your search parameters based on selectedCategories
+        // For example, you can update a hidden input field that gets submitted with the search
+        // Or you can use these categories to refine the search query in some other way
+        console.log('Selected Categories:', selectedCategories);
+    }
+    
+
     function displayResults(data) {
         resultsContainer.innerHTML = '';
         if (data.error) {

@@ -29,8 +29,11 @@ def index():
 @app.route('/search')
 def search():
     query = request.args.get('q')
+    categories = request.args.getlist('categories')
+
     if not query:
         return jsonify({"error": "Missing query parameter"}), 400
+
 
     api_key = 'AIzaSyDa83ukRR4dlqykb_5NmxRm3o-BKj6_zkY'
     cx = '674dd5606f7914a34'
@@ -46,6 +49,10 @@ def search():
         'siteSearchFilter': 'i'   # i: Include results from the specified site(s)
     }
 
+    if categories:
+        category_filter = ' OR '.join(categories)
+        search_parameters['q'] += f' ({category_filter})'
+        
     url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
 
     response = requests.get(url, params=search_parameters)

@@ -33,13 +33,11 @@
     <div class="container">
         <div class="main-content">
             <div class="sidebar">
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 1</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 2</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 3</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 4</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 5</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 6</button>
-                <button class="sidebar-option" onclick="navigateTo('fish.html')">option 7</button>
+                <button class="sidebar-option" data-category="Accessories" onclick="toggleOption(this)">&#10003; Accessories</button>
+                <button class="sidebar-option" data-category="Laws" onclick="toggleOption(this)">&#10003; Laws</button>
+                <button class="sidebar-option" data-category="Live Bait" onclick="toggleOption(this)">&#10003; Live Bait</button>
+                <button class="sidebar-option" data-category="Lures" onclick="toggleOption(this)">&#10003; Lures</button>
+                <button class="sidebar-option" data-category="Fishing Types" onclick="toggleOption(this)">&#10003; Fishing Types</button>
             </div>
 
             <div class="content">
