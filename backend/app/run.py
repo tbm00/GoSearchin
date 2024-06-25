@@ -5,6 +5,23 @@ import requests
 
 app = Flask(__name__)
 
+def fetch_weather():
+    lat = '29.8833'  # Replace with your location's latitude
+    lon = '97.9414'  # Replace with your location's longitude
+    url = f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,windspeed_10m'
+    
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            current_temp = data['hourly']['temperature_2m']['0']['value']
+            current_wind_speed = data['hourly']['windspeed_10m']['0']['value']
+            return {'temperature': current_temp, 'windspeed': current_wind_speed}
+        else:
+            return None
+    except requests.exceptions.RequestException:
+        return None
+
 @app.route('/')
 def index():
     return render_template('index.html')
