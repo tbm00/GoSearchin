@@ -1,3 +1,4 @@
+# app/__init__.py
 from flask import Flask
 
 def create_app():
@@ -5,5 +6,8 @@ def create_app():
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
+    from .search import search_bp
+    app.register_blueprint(search_bp)
 
     return app
