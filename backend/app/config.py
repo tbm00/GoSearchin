@@ -4,15 +4,15 @@ class Config:
     GOOGLE_CX = '674dd5606f7914a34'
 
     # MySQL: User Database
-    USER_DB_HOST = '194.104.156.210'
+    USER_DB_HOST = 'localhost'
     USER_DB_PORT = '3306'
-    USER_DB_USER = 'u30529_i8EvvPQCAB'
-    USER_DB_PASS = '1BrMMkcomapI9zdW=aeuBMMl'
-    USER_DB_NAME = 's30529_userDB'
+    USER_DB_USER = 'bassholes'
+    USER_DB_PASS = 'password'
+    USER_DB_NAME = 'userDB'
 
     # MySQL: Knowledgebase Database
-    #KNOW_DB_HOST = '194.104.156.210'
+    #KNOW_DB_HOST = 'localhost'
     #KNOW_DB_PORT = '3306'
-    #KNOW_DB_USER = 'u30529_KbO2x8q2ys'
-    #KNOW_DB_PASS = 'NRAUvlsv37DWqVcBP3+Il91f'
-    #KNOW_DB_NAME = 's30529_knowledgeDB'
+    #KNOW_DB_USER = 'bassholes'
+    #KNOW_DB_PASS = 'password'
+    #KNOW_DB_NAME = 'knowledgeDB'
