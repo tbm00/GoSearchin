@@ -5,7 +5,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, current_app
 import requests
 import geoip2.database
 from app.models.user import User
@@ -80,9 +80,9 @@ def fetch_public_ip():
         print("An error occurred while fetching public IP address:", e)
         return None
 
-def fetch_location(ip_address, db_path):
+def fetch_location(ip_address, mmdb_path):
     try:
-        reader = geoip2.database.Reader(db_path)
+        reader = geoip2.database.Reader(mmdb_path)
         response = reader.city(ip_address)
         location = {
             "latitude": response.location.latitude,
@@ -171,13 +171,13 @@ def profile():
 def fish():
     return render_template('fish.html')
 
-def store_local_user(db_path):
+def run_as_local_user(mmdb_path):
     user = User(user_id=None)
     user.insert_user(username="local_user")
     
     ip_address = fetch_public_ip()
     if ip_address:
-        location = fetch_location(ip_address, db_path)
+        location = fetch_location(ip_address, mmdb_path)
         if location:
             user.update_location_db(location['latitude'], location['longitude'], ip_address)
             
@@ -191,8 +191,8 @@ def init_db():
     db_connector.create_schema()
 
 if __name__ == '__main__':
-    db_path = os.path.join(os.path.dirname(__file__), 'data', 'GeoLite2-City.mmdb')
+    mmdb_path = os.path.join(os.path.dirname(__file__), 'data', 'GeoLite2-City.mmdb')
     with app.app_context():
         init_db() # Initialize the database
-        store_local_user(db_path) # Basic functionality for MVP
+        run_as_local_user(mmdb_path) # Basic functionality for MVP
     app.run(debug=True)

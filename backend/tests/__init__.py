@@ -1,3 +1,5 @@
+# tests.__init__.py
+
 import unittest
 import os
 import sys
