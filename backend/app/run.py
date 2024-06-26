@@ -1,8 +1,13 @@
 # app.run.py
 
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Flask, render_template, jsonify, request, current_app
 import requests
-import geoip2.database, os
+import geoip2.database
 from app.models.user import User
 from app.models.dbConnector import dbConnector
 from config import Config
