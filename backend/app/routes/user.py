@@ -1,3 +1,4 @@
+# app.routes.user.py
 # Handles HTTP requests for users
 
 from flask import Blueprint, request, jsonify
@@ -80,12 +81,3 @@ def get_user_weather(user_id):
         return jsonify(weather_data), 200
     else:
         return jsonify({"error": "No weather data found"}), 404
-
-@user_bp.route('/user/<int:user_id>/weather/current', methods=['GET'])
-def get_current_weather(user_id):
-    user_instance = User(user_id=user_id)
-    current_weather = user_instance.get_weather()
-    if current_weather:
-        return jsonify(current_weather), 200
-    else:
-        return jsonify({"error": "Weather data fetch failed"}), 500

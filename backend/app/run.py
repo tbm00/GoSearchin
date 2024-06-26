@@ -1,4 +1,4 @@
-# app.py or run.py
+# app.run.py
 
 from flask import Flask, render_template, request, current_app, jsonify
 import requests
@@ -128,7 +128,12 @@ def store_local_user():
                 user.store_weather_data(weather)
                 print("Location and weather data stored successfully.")
 
+def init_db():
+    db_connector = dbConnector()
+    db_connector.create_schema()
+
 if __name__ == '__main__':
     with app.app_context():
-        store_local_user() # basic functionality for MVP
+        init_db() # Initialize the database
+        store_local_user() # Basic functionality for MVP
     app.run(debug=True)

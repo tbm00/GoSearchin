@@ -1,3 +1,5 @@
+# app.config.py
+
 class Config:
     # Google Search API
     GOOGLE_API_KEY = 'AIzaSyDa83ukRR4dlqykb_5NmxRm3o-BKj6_zkY'

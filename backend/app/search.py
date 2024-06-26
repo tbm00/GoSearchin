@@ -1,6 +1,9 @@
-# app/search.py
+# app.search.py
+
 from flask import Blueprint, request, jsonify
 import requests
+from app.services.google_search import perform_search
+from config import Config
 
 search_bp = Blueprint('search', __name__)
 
@@ -10,13 +13,8 @@ def search():
     if not query:
         return jsonify({'error': 'Missing query parameter'}), 400
 
-    API_KEY = 'AIzaSyDa83ukRR4dlqykb_5NmxRm3o-BKj6_zkY'  # Replace with your actual API key
-    CX = '674dd5606f7914a34'  # Replace with your actual Search Engine ID
+    API_KEY = Config.GOOGLE_API_KEY
+    CX = Config.GOOGLE_CX
 
-    url = f'https://www.googleapis.com/customsearch/v1?key={API_KEY}&cx={CX}&q={query}'
-
-    response = requests.get(url)
-    if response.status_code == 200:
-        return jsonify(response.json())
-    else:
-        return jsonify({'error': 'Error fetching results from Google'}), response.status_code
+    search_results = perform_search(query, API_KEY, CX)
+    return jsonify(search_results)

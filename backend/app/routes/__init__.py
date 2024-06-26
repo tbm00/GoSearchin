@@ -1,4 +1,4 @@
-# app/routes/__init__.py
+# app.routes.__init__.py
 
 from ..search import search_bp
 from .user import user_bp

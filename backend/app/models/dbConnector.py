@@ -1,3 +1,5 @@
+# app.models.dbConnector.py
+
 import mysql.connector
 from mysql.connector import pooling, Error
 from config import Config
@@ -28,7 +30,6 @@ class dbConnector:
 
     def create_schema(self):
         schema_queries = [
-
             """
             CREATE TABLE IF NOT EXISTS Location (
                 location_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,7 +61,6 @@ class dbConnector:
                 INDEX (user_id)
             );
             """,
-
             """
             CREATE TABLE IF NOT EXISTS Results (
                 result_id INT AUTO_INCREMENT PRIMARY KEY,

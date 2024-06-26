@@ -1,4 +1,4 @@
-# app/models/__init__.py
+# app.models.__init__.py
 
 from .dbConnector import dbConnector
 from .user import User

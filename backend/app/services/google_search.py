@@ -1,3 +1,5 @@
+# app.services.google_search.py
+
 import requests
 
 def perform_search(query, api_key, cx):
@@ -13,5 +15,8 @@ def perform_search(query, api_key, cx):
         response.raise_for_status() # raises exception for http errors
         return response.json()
     except requests.RequestException as e:
-        print(f"Error performing search: {e}")
+        print(f"Error: Request Exception while performing search: {e}")
+        return {"error": "Search failed"}
+    except Exception as e:
+        print(f"Error: Exception while performing search: {e}")
         return {"error": "Search failed"}
