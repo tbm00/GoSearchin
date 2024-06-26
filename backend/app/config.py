@@ -1,9 +1,11 @@
 # app.config.py
+import os
 
 class Config:
     # Google Search API
     GOOGLE_API_KEY = 'AIzaSyDa83ukRR4dlqykb_5NmxRm3o-BKj6_zkY'
     GOOGLE_CX = '674dd5606f7914a34'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'key'
 
     # MySQL: User Database
     USER_DB_HOST = '194.104.156.210'

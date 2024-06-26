@@ -5,7 +5,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from flask import Flask, render_template, jsonify, request, current_app
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import requests
 import geoip2.database
 from app.models.user import User
@@ -14,6 +14,55 @@ from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+#db = dbConnector().get_db()
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        # Check if the user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email address already exists. Please use a different email.')
+            return redirect(url_for('register'))
+
+        # Create new user
+        new_user = User(username=username, email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Registration successful. Please log in.')
+        return redirect(url_for('login'))  # Redirect to login page after successful registration
+
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        # Example authentication logic
+        if username == 'demo' and email == 'demo@example.com' and password == 'password':
+            # Successful login
+            return redirect(url_for('index'))  # Redirect to index route
+        else:
+            # Failed login
+            flash('Invalid username or password')  # Optional: Use Flask flash for error messages
+            return redirect(url_for('login'))  # Redirect back to login route on failed login
+
+    # GET request (initial visit to /login or after failed login)
+    return render_template('login.html')
+
+
+# Route for index page (default landing page)
+@app.route('/')
+def index():
+    return render_template('index.html')  # Redirect to login page by default
 
 def fetch_public_ip():
     try:
@@ -68,10 +117,6 @@ def fetch_weather(lat, lon):
         print("An error occurred while fetching weather data:", e)
         return None
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/search')
 def search():
     query = request.args.get('q')
@@ -113,6 +158,18 @@ def search():
         return jsonify({"error": "No results found"}), 404
 
     return render_template('results.html', results=data['items'])
+
+@app.route('/weather.html')
+def weather():
+    return render_template('weather.html')
+
+@app.route('/profile.html')
+def profile():
+    return render_template('profile.html')
+
+@app.route('/fish.html')
+def fish():
+    return render_template('fish.html')
 
 def store_local_user(db_path):
     user = User(user_id=None)
