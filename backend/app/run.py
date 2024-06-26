@@ -1,8 +1,8 @@
 # app.run.py
 
-from flask import Flask, render_template, request, current_app, jsonify
+from flask import Flask, render_template, jsonify, request, current_app
 import requests
-import geoip2.database
+import geoip2.database, os
 from app.models.user import User
 from app.models.dbConnector import dbConnector
 from config import Config
@@ -26,20 +26,16 @@ def fetch_public_ip():
         print("An error occurred while fetching public IP address:", e)
         return None
 
-def fetch_location(ip_address):
+def fetch_location(ip_address, db_path):
     try:
-        # Specify the path to the MaxMind GeoIP2 database
-        reader = geoip2.database.Reader('/data/GeoLite2-City.mmdb')
-
+        reader = geoip2.database.Reader(db_path)
         response = reader.city(ip_address)
-
         location = {
             "latitude": response.location.latitude,
             "longitude": response.location.longitude,
             #"city": response.city.name,
             #"country": response.country.name
         }
-
         return location
     except geoip2.errors.AddressNotFoundError:
         print("Address not found in MaxMind database for IP:", ip_address)
@@ -50,7 +46,7 @@ def fetch_location(ip_address):
 
 def fetch_weather(lat, lon):
     url = f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,windspeed_10m'
-    
+
     try:
         response = requests.get(url)
         if response.status_code == 200:
@@ -113,15 +109,15 @@ def search():
 
     return render_template('results.html', results=data['items'])
 
-def store_local_user():
+def store_local_user(db_path):
     user = User(user_id=None)
     user.insert_user(username="local_user")
     
     ip_address = fetch_public_ip()
     if ip_address:
-        location = fetch_location(ip_address)
+        location = fetch_location(ip_address, db_path)
         if location:
-            user.update_location_db(location['latitude'], location['longitude'])
+            user.update_location_db(location['latitude'], location['longitude'], ip_address)
             
             weather = fetch_weather(location['latitude'], location['longitude'])
             if weather:
@@ -133,7 +129,8 @@ def init_db():
     db_connector.create_schema()
 
 if __name__ == '__main__':
+    db_path = os.path.join(os.path.dirname(__file__), 'data', 'GeoLite2-City.mmdb')
     with app.app_context():
         init_db() # Initialize the database
-        store_local_user() # Basic functionality for MVP
+        store_local_user(db_path) # Basic functionality for MVP
     app.run(debug=True)

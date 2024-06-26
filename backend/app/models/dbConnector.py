@@ -35,6 +35,7 @@ class dbConnector:
                 location_id INT AUTO_INCREMENT PRIMARY KEY,
                 latitude DECIMAL(9,6),
                 longitude DECIMAL(9,6),
+                ip VARCHAR(45),
                 weather_data JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );

@@ -60,8 +60,9 @@ def update_user_location(user_id):
     data = request.get_json()
     latitude = data.get('latitude')
     longitude = data.get('longitude')
-    if latitude is not None and longitude is not None:
-        user_instance.update_location_db(latitude, longitude)
+    ip = data.get('ip')
+    if latitude is not None and longitude is not None and ip is not None:
+        user_instance.update_location_db(latitude, longitude, ip)
         return jsonify({"message": "Location updated"}), 200
     else:
         return jsonify({"error": "Invalid data"}), 400

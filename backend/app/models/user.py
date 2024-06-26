@@ -26,7 +26,7 @@ class User:
                         return None
                     user_data = cursor.fetchone()
                     if user_data:
-                        self.user_id = user_data['user_id']  # Update the instance with the user_id
+                        self.user_id = user_data['user_id']
                     return user_data
         except Exception as e:
             print(f"Error retrieving user: {e}")
@@ -39,7 +39,7 @@ class User:
                     insert_user_query = "INSERT INTO Accounts (username) VALUES (%s)"
                     cursor.execute(insert_user_query, (username,))
                     conn.commit()
-                    self.user_id = cursor.lastrowid # store inserted user's ID to self
+                    self.user_id = cursor.lastrowid
                     print("User inserted successfully")
         except Exception as e:
             print(f"Error inserting user: {e}")
@@ -101,15 +101,15 @@ class User:
         except Exception as e:
             print(f"Error deleting query: {e}")
 
-    def update_location_db(self, latitude, longitude):
+    def update_location_db(self, latitude, longitude, ip):
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
                     update_location_query = """
-                        UPDATE Location SET latitude = %s, longitude = %s 
+                        UPDATE Location SET latitude = %s, longitude = %s, ip = %s
                         WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)
                     """
-                    location_data = (latitude, longitude, self.user_id)
+                    location_data = (latitude, longitude, ip, self.user_id)
                     cursor.execute(update_location_query, location_data)
                     conn.commit()
         except Exception as e:
@@ -119,7 +119,7 @@ class User:
         try:
             with self.db.connection_pool.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    get_location_query = "SELECT latitude, longitude FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)"
+                    get_location_query = "SELECT latitude, longitude, ip FROM Location WHERE location_id = (SELECT location_id FROM Accounts WHERE user_id = %s)"
                     cursor.execute(get_location_query, (self.user_id,))
                     result = cursor.fetchone()
                     if result:
