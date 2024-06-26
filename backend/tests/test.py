@@ -9,7 +9,7 @@ import unittest
 from flask import Flask
 from app.models.user import User
 from app.models.dbConnector import dbConnector
-from app.run import init_db, store_local_user
+from app.run import init_db, run_as_local_user
 
 class TestApp(unittest.TestCase):
     
@@ -21,11 +21,11 @@ class TestApp(unittest.TestCase):
         cls.app.testing = True
         cls.client = cls.app.test_client()
 
-        # Initialize the database and store local user
+        # Initialize the database and run as local user
         with cls.app.app_context():
             init_db()
-            db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app', 'data', 'GeoLite2-City.mmdb'))
-            store_local_user(db_path)
+            mmdb_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app', 'data', 'GeoLite2-City.mmdb'))
+            run_as_local_user(mmdb_path)
 
         cls.db_connector = dbConnector()
         cls.user_id = None
