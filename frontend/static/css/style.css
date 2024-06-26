@@ -234,3 +234,22 @@ header {
 .search-result a:hover {
     text-decoration: underline;
 }
+
+#weather-info, #location-info, #fish-list {
+    background-color: #4CAF50;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.fish-item {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #2c5d3f;
+    border-radius: 5px;
+    color: white;
+}
