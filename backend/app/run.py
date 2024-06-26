@@ -1,6 +1,6 @@
 # app.py or run.py
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 
 app = Flask(__name__)
@@ -41,18 +41,20 @@ def search():
         'q': query,
         'key': api_key,
         'cx': cx,
+        'siteSearch': '.gov',
         'siteSearch': 'tpwd.texas.gov',
-        'siteSearch': 'fisheries.noa',
+        'siteSearch': 'fisheries.noaa.gov',
+        'siteSearch': 'in-fisherman.com',
         'siteSearch': 'nps.gov',  # Restrict search to .gov sites
-        'siteSearch': 'takemefishing.org',
-        'siteSearch': 'saltstrong.com',
+        #'siteSearch': 'takemefishing.org',
+        #'siteSearch': 'saltstrong.com',
         'siteSearchFilter': 'i'   # i: Include results from the specified site(s)
     }
 
     if categories:
         category_filter = ' OR '.join(categories)
         search_parameters['q'] += f' ({category_filter})'
-        
+
     url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
 
     response = requests.get(url, params=search_parameters)
