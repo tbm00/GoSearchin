@@ -7,31 +7,220 @@
     <title>Weather - GoFish</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald|Roboto:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Oswald', serif;
+            font-size: 24px;
+            margin: 0;
+            padding: 0;
+            background-color: #1a3725;
+            color: white;
+        }
+
+        header {
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo .fish-icon {
+            font-size: 24px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 10px;
+            border: none;
+            background-color: #416d52;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .header-buttons button:hover {
+            background-color: #45a049;
+        }
+
+        .header-container {
+            text-align: center;
+            color: white;
+            margin-top: 0;
+            position: relative;
+            background-image: url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjluNG5scWlzdHhkY3l0cjd3eXh4amJlaGc5MWI3d2ZvY28xNnQ5dyZlcD12MV9pbnRlcm5naWZfYnlfaWQmY3Q9Zw/hWWnZ3VdmaBlBtCrWp/giphy.webp');
+            background-position: center;
+            background-size: cover;
+            padding: 75px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            background-color: #1a3725;
+            padding: 10px;
+            width: 200px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-option {
+            margin-top: 20px;
+            display: block;
+            width: 100%;
+            height: 50px;
+            padding: 5px;
+            margin-bottom: 2px;
+            background-color: #416d52;
+            border: 1px solid #6b8d78;
+            cursor: pointer;
+            text-align: left;
+            border-radius: 10px;
+        }
+
+        .sidebar-option:hover {
+            background-color: #e0e0e0;
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            flex: 1;
+            padding: 20px;
+            gap: 10px;
+        }
+
+        .weather-info {
+            background-color: #1a3725;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .weather-icon {
+            font-size: 80px;
+            color: #45a049;
+            margin-bottom: 20px;
+        }
+
+        .weather-details p {
+            font-size: 20px;
+            margin: 10px 0;
+            color: white;
+        }
+
+        .weather-details span {
+            font-weight: bold;
+            color: #45a049;
+        }
+
+        .weather-footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .weather-footer a {
+            color: #45a049;
+            text-decoration: none;
+        }
+
+        .weather-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
     <header>
         <div class="header-logo">
-            <span class="fish-icon">&#128031</span>
+            <span class="fish-icon">&#128031;</span>
             <span>GoFish</span>
         </div>
         <div class="header-buttons">
-            <button onclick="navigateTo('profile.html')">Profile</button>
-            <button onclick="navigateTo('settings.html')">Settings</button>
+            <button onclick="navigateTo('profile')">Profile</button>
+            <button onclick="navigateTo('settings')">Settings</button>
         </div>
     </header>
 
+    <div class="header-container">
+        <h1>Weather Information</h1>
+        <p class="catchphrase">Your local weather at a glance</p>
+    </div>
+
     <div class="container">
         <div class="main-content">
-            <h2>Weather Information</h2>
-            <div id="weather-info" class="content">
-                <!-- Weather information will be inserted here by JavaScript -->
+            <div class="sidebar">
+                <button class="sidebar-option" data-category="weather" onclick="navigateTo('weather')">&#10003; Weather</button>
+            </div>
+
+            <div class="content">
+                <div id="weather-info" class="weather-info">
+                    <div class="weather-icon" id="weather-icon">
+                        <!-- Weather icon will be inserted here -->
+                    </div>
+                    <div class="weather-details">
+                        <p>Temperature: <span id="temperature"></span> °F</p>
+                        <p>Wind Speed: <span id="wind-speed"></span> MPH</p>
+                        <p>Condition: <span id="condition"></span></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Function to populate weather info
+        function displayWeather(data) {
+            document.getElementById('temperature').textContent = data.temperature.toFixed(1);
+            document.getElementById('wind-speed').textContent = data.wind_speed.toFixed(1);
+            document.getElementById('condition').textContent = data.condition;
+
+            // Map weather condition to a Weather Icons class
+            const conditionIcons = {
+                'Clear': 'wi-day-sunny',
+                'Clouds': 'wi-cloudy',
+                'Rain': 'wi-rain',
+                'Snow': 'wi-snow',
+                'Thunderstorm': 'wi-thunderstorm',
+                'Drizzle': 'wi-showers',
+                'Fog': 'wi-fog'
+            };
+
+            const iconClass = conditionIcons[data.condition] || 'wi-day-cloudy';
+            document.getElementById('weather-icon').innerHTML = `<i class="wi ${iconClass}"></i>`;
+        }
+
+        // Fetch weather data from the server
+        fetch('/get_weather_data')
+            .then(response => response.json())
+            .then(data => displayWeather(data))
+            .catch(error => console.error('Error fetching weather data:', error));
+    </script>
 </body>
 
 </html>

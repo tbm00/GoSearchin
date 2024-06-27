@@ -106,24 +106,24 @@ def fetch_weather(lat, lon):
         if response.status_code == 200:
             data = response.json()
 
-            # Safely access the first element of the hourly data
             temperature_2m = data['hourly'].get('temperature_2m', [])
             windspeed_10m = data['hourly'].get('windspeed_10m', [])
+            weather_condition = "Clear"  # This is a placeholder. Replace with actual data if available.
+            weather_icon = "01d"  # Default icon. Replace with actual data if available.
 
-            # Ensure lists are not empty
             if temperature_2m and windspeed_10m:
-                current_temp_c = temperature_2m[0]  # Access the first value
-                current_wind_speed_kmh = windspeed_10m[0]  # Access the first value
+                current_temp_c = temperature_2m[0]
+                current_wind_speed_kmh = windspeed_10m[0]
 
-                # Convert temperature to Fahrenheit
                 current_temp_f = (current_temp_c * 9/5) + 32
-
-                # Convert wind speed to MPH
                 current_wind_speed_mph = current_wind_speed_kmh * 0.621371
-                # Assuming 'condition' is not in the data; you might need to adjust this.
-                condition = "Clear"  # Placeholder, update this accordingly.
 
-                return {'temperature': current_temp_f, 'wind_speed': current_wind_speed_mph, 'condition': condition}
+                return {
+                    'temperature': current_temp_f,
+                    'wind_speed': current_wind_speed_mph,
+                    'condition': weather_condition,
+                    'icon': weather_icon  # Add weather icon here
+                }
             else:
                 print("Weather data is empty or not available.")
                 return None
@@ -136,6 +136,13 @@ def fetch_weather(lat, lon):
     except Exception as e:
         print("An error occurred while fetching weather data:", e)
         return None
+
+@app.route('/get_weather_data')
+def get_weather_data():
+    lat, lon = 40.7128, -74.0060  # Example coordinates. Replace with actual logic to get user location.
+    weather_data = fetch_weather(lat, lon)
+    return jsonify(weather_data)
+
 
 @app.route('/search')
 def search():
@@ -177,11 +184,15 @@ def search():
 
     return render_template('results.html', results=search_results, weather=weather_data)
 
-@app.route('/weather.html')
+@app.route('/weather')
 def weather():
     return render_template('weather.html')
 
-@app.route('/profile.html')
+app.route('/location')
+def location():
+    return render_template('location.html')
+
+@app.route('/profile')
 def profile():
     return render_template('profile.html')
 
