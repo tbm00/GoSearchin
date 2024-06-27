@@ -18,7 +18,6 @@ class dbConnector:
             pool_size=5,
             **self.dbconfig
         )
-        self.create_schema()
 
     def get_connection(self):
         return self.connection_pool.get_connection()
@@ -82,3 +81,17 @@ class dbConnector:
                 print("Database schema created successfully")
         except Error as e:
             print(f"Error creating schema: {e}")
+
+    def delete_database(self):
+        tables = ['Location', 'Accounts', 'Queries', 'Results']
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+                    for table in tables:
+                        cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
+                    cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+                    conn.commit()
+                    print("All specified tables deleted successfully")
+        except Exception as e:
+            print(f"Error deleting tables: {e}")

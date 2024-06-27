@@ -7,8 +7,8 @@ def perform_search(query, api_key, cx):
         search_url = 'https://www.googleapis.com/customsearch/v1'
         params = {
             'q': query,
-            'key': api_key, # set in config.p
-            'cx': cx # set in config.p
+            'key': api_key,
+            'cx': cx
         }
         
         response = requests.get(search_url, params=params)

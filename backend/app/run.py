@@ -6,7 +6,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, current_app
-import requests
+from datetime import datetime, timezone
+import requests, pytz
 import geoip2.database
 from app.models.user import User
 from app.models.dbConnector import dbConnector
@@ -14,29 +15,34 @@ from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
-#db = dbConnector().get_db()
+local_user = User(user_id=None)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        temp_username = request.form['username']
+        temp_email = request.form['email']
+        temp_password = request.form['password']
 
         # Check if the user already exists
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(email=temp_email).first()
         if existing_user:
-            flash('Email address already exists. Please use a different email.')
+            flash('Email address already exists. Please use a different one.')
+            return redirect(url_for('register'))
+        existing_user = User.query.filter_by(username=temp_username).first()
+        if existing_user:
+            flash('Username already exists. Please use a different one.')
             return redirect(url_for('register'))
 
-        # Create new user
-        new_user = User(username=username, email=email, password=password)
-        db.session.add(new_user)
-        db.session.commit()
+        success = local_user.update_user(temp_username, temp_email)
 
-        flash('Registration successful. Please log in.')
-        return redirect(url_for('login'))  # Redirect to login page after successful registration
-
+        if success:
+            # Redirect to login page after successful registration
+            flash('Registration successful. Username and email saved.')
+            return redirect(url_for('index'))
+        else:
+            flash('Registration failed. Please try again.')
+            return redirect(url_for('register'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -46,14 +52,17 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        # Example authentication logic
-        if username == 'demo' and email == 'demo@example.com' and password == 'password':
+        temp_id = local_user.find_username(username)
+        if temp_id:
             # Successful login
-            return redirect(url_for('index'))  # Redirect to index route
+            local_user.user_id = temp_id
+            local_user.username = username
+            local_user.email = email
+            return redirect(url_for('index'))  # Redirect to index
         else:
             # Failed login
-            flash('Invalid username or password')  # Optional: Use Flask flash for error messages
-            return redirect(url_for('login'))  # Redirect back to login route on failed login
+            flash('Invalid username or password') 
+            return redirect(url_for('login'))  # Redirect back to login
 
     # GET request (initial visit to /login or after failed login)
     return render_template('login.html')
@@ -99,7 +108,7 @@ def fetch_location(ip_address, mmdb_path):
         return None
 
 def fetch_weather(lat, lon):
-    url = f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,windspeed_10m'
+    url = f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,windspeed_10m&temperature_unit=celsius&timezone=auto'
 
     try:
         response = requests.get(url)
@@ -108,22 +117,29 @@ def fetch_weather(lat, lon):
 
             temperature_2m = data['hourly'].get('temperature_2m', [])
             windspeed_10m = data['hourly'].get('windspeed_10m', [])
-            weather_condition = "Clear"  # This is a placeholder. Replace with actual data if available.
-            weather_icon = "01d"  # Default icon. Replace with actual data if available.
+            timestamps = data['hourly'].get('time', [])
+            elevation_m = data.get('elevation')
 
-            if temperature_2m and windspeed_10m:
-                current_temp_c = temperature_2m[0]
-                current_wind_speed_kmh = windspeed_10m[0]
+            if temperature_2m and windspeed_10m and timestamps:
+                # Convert timestamps to datetime objects
+                timestamps = [datetime.fromisoformat(ts.replace('Z', '+00:00')) for ts in timestamps]
+                # Find the index of the most recent timestamp
+                latest_index = max(range(len(timestamps)), key=lambda i: timestamps[i])
+                
+                current_temp_c = temperature_2m[latest_index]
+                current_wind_speed_kmh = windspeed_10m[latest_index]
 
                 current_temp_f = (current_temp_c * 9/5) + 32
                 current_wind_speed_mph = current_wind_speed_kmh * 0.621371
+                elevation_f = elevation_m * 3.28084 if elevation_m is not None else None
+                elevation_f_r = round(elevation_f * 2) / 2 if elevation_f is not None else None
 
-                return {
+                weather_data = {
                     'temperature': current_temp_f,
                     'wind_speed': current_wind_speed_mph,
-                    'condition': weather_condition,
-                    'icon': weather_icon  # Add weather icon here
+                    'elevation': elevation_f_r,
                 }
+                return weather_data
             else:
                 print("Weather data is empty or not available.")
                 return None
@@ -139,7 +155,7 @@ def fetch_weather(lat, lon):
 
 @app.route('/get_weather_data')
 def get_weather_data():
-    lat, lon = 40.7128, -74.0060  # Example coordinates. Replace with actual logic to get user location.
+    lat, lon = local_user.coords['latitude'] , local_user.coords['longitude']
     weather_data = fetch_weather(lat, lon)
     return jsonify(weather_data)
 
@@ -176,11 +192,10 @@ def search():
 
     search_results = data['items']
 
-    # Fetch weather data (replace lat and lon with actual coordinates)
-    lat, lon = 40.7128, -74.0060  # Example coordinates, replace with actual values
+    lat, lon = local_user.coords['latitude'] , local_user.coords['longitude']
     weather_data = fetch_weather(lat, lon)
     
-    print("Weather data:", weather_data)  # Debugging output
+    print("Weather data while searching:", weather_data)
 
     return render_template('results.html', results=search_results, weather=weather_data)
 
@@ -201,19 +216,23 @@ def fish():
     return render_template('fish.html')
 
 def run_as_local_user(mmdb_path):
-    user = User(user_id=None)
-    user.insert_user(username="local_user")
-    
-    ip_address = fetch_public_ip()
-    if ip_address:
-        location = fetch_location(ip_address, mmdb_path)
-        if location:
-            user.update_location_db(location['latitude'], location['longitude'], ip_address)
+    local_user.insert_user(username="local_user")
+
+    local_user.ip = fetch_public_ip()
+    print("Checkpoint: local_user.ip = " + local_user.ip)
+
+    if local_user.ip != "null":
+        local_user.coords = fetch_location(local_user.ip, mmdb_path)
+        print("Checkpoint: local_user.coords = " + str(local_user.coords))
+        
+        if local_user.coords != [0,0]:
+            local_user.update_location_db(local_user.coords['latitude'], local_user.coords['longitude'], local_user.ip)
+            local_user.weather = fetch_weather(local_user.coords['latitude'], local_user.coords['longitude'])
+            print("Checkpoint: local_user.weather = " + str(local_user.weather))
             
-            weather = fetch_weather(location['latitude'], location['longitude'])
-            if weather:
-                user.store_weather_data(weather)
-                print("Location and weather data stored successfully.")
+            if local_user.weather != [0, 0, 0]:
+                local_user.store_weather_data(local_user.weather)
+                print("Local user location and weather data stored in database.")
 
 def init_db():
     db_connector = dbConnector()

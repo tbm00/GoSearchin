@@ -1,7 +1,6 @@
 # app.search.py
 
 from flask import Blueprint, request, jsonify
-import requests
 from app.services.google_search import perform_search
 from config import Config
 
