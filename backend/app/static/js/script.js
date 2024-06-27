@@ -1,4 +1,4 @@
-// static/js/script.js
+// app.static.js.script.js
 
 function navigateTo(page) {
     window.location.href = page;
