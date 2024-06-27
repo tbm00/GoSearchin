@@ -105,10 +105,30 @@ def fetch_weather(lat, lon):
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
-            current_temp = data['hourly']['temperature_2m']['0']['value']
-            current_wind_speed = data['hourly']['windspeed_10m']['0']['value']
-            return {'temperature': current_temp, 'windspeed': current_wind_speed}
+
+            # Safely access the first element of the hourly data
+            temperature_2m = data['hourly'].get('temperature_2m', [])
+            windspeed_10m = data['hourly'].get('windspeed_10m', [])
+
+            # Ensure lists are not empty
+            if temperature_2m and windspeed_10m:
+                current_temp_c = temperature_2m[0]  # Access the first value
+                current_wind_speed_kmh = windspeed_10m[0]  # Access the first value
+
+                # Convert temperature to Fahrenheit
+                current_temp_f = (current_temp_c * 9/5) + 32
+
+                # Convert wind speed to MPH
+                current_wind_speed_mph = current_wind_speed_kmh * 0.621371
+                # Assuming 'condition' is not in the data; you might need to adjust this.
+                condition = "Clear"  # Placeholder, update this accordingly.
+
+                return {'temperature': current_temp_f, 'wind_speed': current_wind_speed_mph, 'condition': condition}
+            else:
+                print("Weather data is empty or not available.")
+                return None
         else:
+            print(f"Failed to fetch weather data: {response.text}")
             return None
     except requests.exceptions.RequestException as e:
         print("Request error while fetching weather data:", e)
@@ -134,30 +154,28 @@ def search():
         'siteSearch': '.gov',
         'siteSearch': 'tpwd.texas.gov',
         'siteSearch': 'fisheries.noaa.gov',
-        'siteSearch': 'in-fisherman.com',
-        'siteSearch': 'nps.gov',  # Restrict search to .gov sites
-        #'siteSearch': 'takemefishing.org',
-        #'siteSearch': 'saltstrong.com',
-        'siteSearchFilter': 'i'   # i: Include results from the specified site(s)
+        'siteSearchFilter': 'i'
     }
 
     if categories:
         category_filter = ' OR '.join(categories)
         search_parameters['q'] += f' ({category_filter})'
 
-    url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
-
-    # @ carson, I think we can remove the "?q={query}&key={api_key}&cx={cx}"
-    # from url since they are already getting passed into the below request as params
-    # -tanner
-
-    response = requests.get(url, params=search_parameters)
+    response = requests.get('https://www.googleapis.com/customsearch/v1', params=search_parameters)
     data = response.json()
 
     if 'items' not in data:
         return jsonify({"error": "No results found"}), 404
 
-    return render_template('results.html', results=data['items'])
+    search_results = data['items']
+
+    # Fetch weather data (replace lat and lon with actual coordinates)
+    lat, lon = 40.7128, -74.0060  # Example coordinates, replace with actual values
+    weather_data = fetch_weather(lat, lon)
+    
+    print("Weather data:", weather_data)  # Debugging output
+
+    return render_template('results.html', results=search_results, weather=weather_data)
 
 @app.route('/weather.html')
 def weather():

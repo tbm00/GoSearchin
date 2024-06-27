@@ -257,13 +257,13 @@
             <div class="weather-info">
                 <h2>Current Weather</h2>
                 {% if weather %}
-                    <p>Temperature: {{ weather.temperature }}°C</p>
-                    <p>Wind Speed: {{ weather.wind_speed }} km/h</p>
+                    <p>Temperature: {{ weather.temperature }}°F</p>
+                    <p>Wind: {{ weather.wind_speed }} mph</p>
                     <p>Condition: {{ weather.condition }}</p>
                 {% else %}
                     <p>Weather data not available.</p>
                 {% endif %}
-            </div>
+            </div>            
         </div>
     </div>
 
