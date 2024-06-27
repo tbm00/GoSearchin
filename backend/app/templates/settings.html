@@ -1,4 +1,4 @@
-<!-- app.templates.profile.html -->
+<!-- app.templates.settings.html -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - GoFish</title>
+    <title>Profile Settings - GoFish</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
 </head>
@@ -18,21 +18,13 @@
             <span>GoFish</span>
         </div>
         <div class="header-buttons">
-            <button onclick="navigateTo('index.html')">Home</button>
-            <script>
-                function navigateTo(page) {
-                window.location.href = page;
-                }
-            </script>
-
-            </button>
-            <button onclick="navigateTo('settings.html')">Settings</button>
+            <button onclick="navigateToHome()">Home</button>
         </div>
     </header>
 
     <div class="profile-container">
         <div class="profile-header">
-            <h2>User Profile</h2>
+            <h2>User Profile Settings</h2>
         </div>
 
         <div class="profile-content">

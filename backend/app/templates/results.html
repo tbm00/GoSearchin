@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoFish - Search Results</title>
+    <title>Search Results - GoFish</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
@@ -222,8 +222,10 @@
             <span>GoFish</span>
         </div>
         <div class="header-buttons">
-            <button onclick="navigateTo('profile.html')">Profile</button>
-            <button onclick="navigateTo('settings.html')">Settings</button>
+            <button onclick="navigateTo('register')">Register</button>
+            <button onclick="navigateTo('login')">Login</button>
+            <button onclick="navigateTo('settings')">Profile Settings</button>
+            <button onclick="navigateToHome()">Home</button>
         </div>
     </header>
 
@@ -261,7 +263,7 @@
                 {% if weather %}
                     <p>Temperature: {{ weather.temperature }}°F</p>
                     <p>Wind: {{ weather.wind_speed }} mph</p>
-                    <p>Condition: {{ weather.condition }}</p>
+                    <p>Condition: {{ weather.elevation }} ft</p>
                 {% else %}
                     <p>Weather data not available.</p>
                 {% endif %}
@@ -275,9 +277,5 @@
         &copy; {{ current_year }} GoFish. All rights reserved.
     </footer>
 
-    <script>
-        function navigateTo(page) {
-            window.location.href = page;
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body

@@ -25,44 +25,38 @@ def register():
         temp_password = request.form['password']
 
         # Check if the user already exists
-        existing_user = User.query.filter_by(email=temp_email).first()
-        if existing_user:
-            flash('Email address already exists. Please use a different one.')
-            return redirect(url_for('register'))
-        existing_user = User.query.filter_by(username=temp_username).first()
+        existing_user = local_user.find_by_username(temp_username)
         if existing_user:
             flash('Username already exists. Please use a different one.')
-            return redirect(url_for('register'))
+            return render_template('register.html')
 
         success = local_user.update_user(temp_username, temp_email)
 
         if success:
             # Redirect to login page after successful registration
             flash('Registration successful. Username and email saved.')
-            return redirect(url_for('index'))
+            return render_template('index.html')
         else:
             flash('Registration failed. Please try again.')
-            return redirect(url_for('register'))
+            return render_template('register.html')
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        email = request.form['email']
         password = request.form['password']
 
-        temp_id = local_user.find_username(username)
+        temp_id = local_user.find_by_username(username)
         if temp_id:
             # Successful login
             local_user.user_id = temp_id
             local_user.username = username
-            local_user.email = email
-            return redirect(url_for('index'))  # Redirect to index
+            return render_template('index.html')  # Redirect to index
         else:
             # Failed login
             flash('Invalid username or password') 
-            return redirect(url_for('login'))  # Redirect back to login
+            return render_template('login.html')  # Redirect back to login
 
     # GET request (initial visit to /login or after failed login)
     return render_template('login.html')
@@ -71,7 +65,7 @@ def login():
 # Route for index page (default landing page)
 @app.route('/')
 def index():
-    return render_template('index.html')  # Redirect to login page by default
+    return render_template('index.html')
 
 def fetch_public_ip():
     try:
@@ -127,16 +121,19 @@ def fetch_weather(lat, lon):
                 latest_index = max(range(len(timestamps)), key=lambda i: timestamps[i])
                 
                 current_temp_c = temperature_2m[latest_index]
-                current_wind_speed_kmh = windspeed_10m[latest_index]
-
                 current_temp_f = (current_temp_c * 9/5) + 32
+                current_temp_f_r = round(current_temp_f * 5)/5 if current_temp_f is not None else None
+
+                current_wind_speed_kmh = windspeed_10m[latest_index]
                 current_wind_speed_mph = current_wind_speed_kmh * 0.621371
+                current_wind_speed_mph_r = round(current_wind_speed_mph * 2) / 2 if current_wind_speed_mph is not None else None
+
                 elevation_f = elevation_m * 3.28084 if elevation_m is not None else None
                 elevation_f_r = round(elevation_f * 2) / 2 if elevation_f is not None else None
 
                 weather_data = {
-                    'temperature': current_temp_f,
-                    'wind_speed': current_wind_speed_mph,
+                    'temperature': current_temp_f_r,
+                    'wind_speed': current_wind_speed_mph_r,
                     'elevation': elevation_f_r,
                 }
                 return weather_data
@@ -167,6 +164,7 @@ def search():
 
     if not query:
         return jsonify({"error": "Missing query parameter"}), 400
+    query_id = local_user.insert_query(query, local_user.user_id)
 
     api_key = current_app.config['GOOGLE_API_KEY']
     cx = current_app.config['GOOGLE_CX']
@@ -192,6 +190,11 @@ def search():
 
     search_results = data['items']
 
+    for result in search_results:
+        title = result.get('title', '')
+        link = result.get('link', '')
+        local_user.insert_search_result(query_id, title, link)
+
     lat, lon = local_user.coords['latitude'] , local_user.coords['longitude']
     weather_data = fetch_weather(lat, lon)
     
@@ -203,15 +206,15 @@ def search():
 def weather():
     return render_template('weather.html')
 
-app.route('/location')
+@app.route('/location')
 def location():
     return render_template('location.html')
 
-@app.route('/profile')
-def profile():
-    return render_template('profile.html')
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
 
-@app.route('/fish.html')
+@app.route('/fish')
 def fish():
     return render_template('fish.html')
 
@@ -225,13 +228,17 @@ def run_as_local_user(mmdb_path):
         local_user.coords = fetch_location(local_user.ip, mmdb_path)
         print("Checkpoint: local_user.coords = " + str(local_user.coords))
         
-        if local_user.coords != [0,0]:
-            local_user.update_location_db(local_user.coords['latitude'], local_user.coords['longitude'], local_user.ip)
+        if local_user.coords and local_user.coords['latitude'] != 0 and local_user.coords['longitude'] != 0:
             local_user.weather = fetch_weather(local_user.coords['latitude'], local_user.coords['longitude'])
             print("Checkpoint: local_user.weather = " + str(local_user.weather))
             
-            if local_user.weather != [0, 0, 0]:
-                local_user.store_weather_data(local_user.weather)
+            if local_user.weather:
+                local_user.update_location_and_weather(
+                    local_user.coords['latitude'], 
+                    local_user.coords['longitude'], 
+                    local_user.ip, 
+                    local_user.weather
+                )
                 print("Local user location and weather data stored in database.")
 
 def init_db():

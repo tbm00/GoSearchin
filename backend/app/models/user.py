@@ -35,7 +35,7 @@ class User:
             print(f"Error retrieving user: {e}")
             return None
 
-    def find_username(self, username):
+    def find_by_username(self, username):
         try:
             with self.db.get_connection() as conn:
                 with conn.cursor(dictionary=True) as cursor:
@@ -74,14 +74,24 @@ class User:
     def update_user(self, username, email):
         try:
             with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    update_query = "UPDATE Accounts SET username = %s, email = %s WHERE user_id = %s"
-                    cursor.execute(update_query, (username, email, self.user_id))
-                    conn.commit()
-                    self.username = username
-                    self.email = email
-                    print("User updated successfully")
-                    return cursor.rowcount > 0
+                with conn.cursor(dictionary=True) as cursor:
+                    # Search for local_user already exist
+                    check_user_query = "SELECT user_id FROM Accounts WHERE username = %s"
+                    localname = "local_user"
+                    cursor.execute(check_user_query, (localname,))
+                    user_result = cursor.fetchone()
+                    
+                    # If it does exists, update it
+                    if user_result:
+                        update_user_query = "UPDATE Accounts SET username = %s, email = %s WHERE user_id = %s"
+                        cursor.execute(update_user_query, (username, email, user_result['user_id']))
+                        self.user_id = user_result['user_id']
+                        conn.commit()
+                        self.username = username
+                        self.email = email
+                        print("User updated successfully")
+                        return True
+                    return False
         except Exception as e:
             print(f"Error updating user: {e}")
             return False
@@ -99,74 +109,6 @@ class User:
             print(f"Error deleting user: {e}")
             return False
 
-    def insert_query(self, query_text):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    insert_query = "INSERT INTO Queries (user_id, query_text) VALUES (%s, %s)"
-                    cursor.execute(insert_query, (self.user_id, query_text))
-                    conn.commit()
-        except Exception as e:
-            print(f"Error inserting query: {e}")
-
-    def get_queries(self, db):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    get_query = "SELECT query_text FROM Queries WHERE user_id = %s"
-                    cursor.execute(get_query, (self.user_id,))
-                    return cursor.fetchall()
-        except Exception as e:
-            print(f"Error retrieving queries: {e}")
-            return None
-
-    def delete_query(self, query_text):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    delete_query = "DELETE FROM Queries WHERE user_id = %s AND query_text = %s"
-                    cursor.execute(delete_query, (self.user_id, query_text))
-                    conn.commit()
-        except Exception as e:
-            print(f"Error deleting query: {e}")
-
-    def update_location_db(self, latitude, longitude, ip):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor(dictionary=True) as cursor:
-                    # Check if location exists for the user
-                    check_location_query = """
-                        SELECT location_id FROM Accounts WHERE user_id = %s
-                    """
-                    cursor.execute(check_location_query, (self.user_id,))
-                    location_id_result = cursor.fetchone()
-
-                    if location_id_result:
-                        location_id = location_id_result['location_id']
-                        # Update existing location
-                        update_location_query = """
-                            UPDATE Location SET latitude = %s, longitude = %s, ip = %s
-                            WHERE location_id = %s
-                        """
-                        cursor.execute(update_location_query, (latitude, longitude, ip, location_id))
-                    else:
-                        # Insert new location
-                        insert_location_query = """
-                            INSERT INTO Location (latitude, longitude, ip) VALUES (%s, %s, %s)
-                        """
-                        cursor.execute(insert_location_query, (latitude, longitude, ip))
-                        new_location_id = cursor.lastrowid
-                        # Update user's location_id
-                        update_user_location_query = """
-                            UPDATE Accounts SET location_id = %s WHERE user_id = %s
-                        """
-                        cursor.execute(update_user_location_query, (new_location_id, self.user_id))
-
-                    conn.commit()
-                    print("Location updated successfully")
-        except Exception as e:
-            print(f"Error updating location in DB: {e}")
-
     def get_location(self, db):
         try:
             with self.db.get_connection() as conn:
@@ -180,84 +122,6 @@ class User:
         except Exception as e:
             print(f"Error retrieving location: {e}")
             return None
-
-    def insert_search_result(self, query, result_text):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    insert_result_query = """
-                        INSERT INTO Results (query_id, result_text) 
-                        VALUES ((SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s), %s)
-                    """
-                    user_query = (self.user_id, query, result_text)
-                    cursor.execute(insert_result_query, user_query)
-                    conn.commit()
-        except Exception as e:
-            print(f"Error inserting search result: {e}")
-
-    def delete_search_result(self, query, result_text):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    delete_result_query = """
-                        DELETE FROM Results 
-                        WHERE query_id = (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s) 
-                        AND result_text = %s
-                    """
-                    user_query = (self.user_id, query, result_text)
-                    cursor.execute(delete_result_query, user_query)
-                    conn.commit()
-        except Exception as e:
-            print(f"Error deleting search result: {e}")
-
-    def get_search_results(self, query):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    get_results_query = """
-                        SELECT result_text 
-                        FROM Results 
-                        WHERE query_id = 
-                        (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s)
-                    """
-                    user_query = (self.user_id, query)
-                    cursor.execute(get_results_query, user_query)
-                    return cursor.fetchall()
-        except Exception as e:
-            print(f"Error retrieving search results: {e}")
-            return None
-
-    def store_weather_data(self, weather_data):
-        try:
-            with self.db.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    # Check if location exists for the user
-                    check_location_query = """
-                        SELECT location_id FROM Accounts WHERE user_id = %s
-                    """
-                    cursor.execute(check_location_query, (self.user_id,))
-                    location_id = cursor.fetchone()
-
-                    if location_id:
-                        # Update existing location with weather data
-                        update_weather_query = """
-                            UPDATE Location 
-                            SET weather_data = %s 
-                            WHERE location_id = %s
-                        """
-                        cursor.execute(update_weather_query, (json.dumps(weather_data), location_id['location_id']))
-                    else:
-                        # Insert new location with weather data
-                        insert_location_query = """
-                            INSERT INTO Location (weather_data) VALUES (%s)
-                        """
-                        cursor.execute(insert_location_query, (json.dumps(weather_data),))
-                        new_location_id = cursor.lastrowid
-
-                    conn.commit()
-                    print("Weather data stored successfully")
-        except Exception as e:
-            print(f"Error storing weather data: {e}")
 
     def store_weather_data(self, weather_data):
         try:
@@ -312,3 +176,131 @@ class User:
         except Exception as e:
             print(f"Error retrieving weather data: {e}")
             return None
+
+    def update_location_and_weather(self, latitude, longitude, ip, weather_data):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor(dictionary=True) as cursor:
+                    # Check if the location already exists with the given IP
+                    check_ip_query = """
+                        SELECT location_id FROM Location WHERE ip = %s
+                    """
+                    cursor.execute(check_ip_query, (ip,))
+                    existing_location = cursor.fetchone()
+
+                    if existing_location:
+                        print("Location with this IP already exists. No update performed.")
+                        return
+
+                    # Check if location exists for the user
+                    check_location_query = """
+                        SELECT location_id FROM Accounts WHERE user_id = %s
+                    """
+                    cursor.execute(check_location_query, (self.user_id,))
+                    location_id_result = cursor.fetchone()
+
+                    if location_id_result and location_id_result['location_id']:
+                        location_id = location_id_result['location_id']
+                        # Update existing location with coordinates, IP, and weather data
+                        update_location_query = """
+                            UPDATE Location 
+                            SET latitude = %s, longitude = %s, ip = %s, weather_data = %s
+                            WHERE location_id = %s
+                        """
+                        cursor.execute(update_location_query, (latitude, longitude, ip, json.dumps(weather_data), location_id))
+                    else:
+                        # Insert new location with coordinates, IP, and weather data
+                        insert_location_query = """
+                            INSERT INTO Location (latitude, longitude, ip, weather_data) VALUES (%s, %s, %s, %s)
+                        """
+                        cursor.execute(insert_location_query, (latitude, longitude, ip, json.dumps(weather_data)))
+                        new_location_id = cursor.lastrowid
+                        # Update user's location_id
+                        update_user_location_query = """
+                            UPDATE Accounts SET location_id = %s WHERE user_id = %s
+                        """
+                        cursor.execute(update_user_location_query, (new_location_id, self.user_id))
+
+                    conn.commit()
+                    print("Location and weather data updated successfully")
+        except Exception as e:
+            print(f"Error updating location and weather data in DB: {e}")
+
+    def get_queries(self, db):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    get_query = "SELECT query_text FROM Queries WHERE user_id = %s"
+                    cursor.execute(get_query, (self.user_id,))
+                    return cursor.fetchall()
+        except Exception as e:
+            print(f"Error retrieving queries: {e}")
+            return None
+
+    def insert_query(self, query_text, user_id):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    insert_query = "INSERT INTO Queries (user_id, query_text) VALUES (%s, %s)"
+                    cursor.execute(insert_query, (user_id, query_text))
+                    conn.commit()
+                    print("Query inserted successfully")
+                    return cursor.lastrowid
+        except Exception as e:
+            print(f"Error inserting query: {e}")
+
+    def delete_query(self, query_text):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    delete_query = "DELETE FROM Queries WHERE user_id = %s AND query_text = %s"
+                    cursor.execute(delete_query, (self.user_id, query_text))
+                    conn.commit()
+        except Exception as e:
+            print(f"Error deleting query: {e}")
+
+    def get_search_results(self, query):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    get_results_query = """
+                        SELECT result_text 
+                        FROM Results 
+                        WHERE query_id = 
+                        (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s)
+                    """
+                    user_query = (self.user_id, query)
+                    cursor.execute(get_results_query, user_query)
+                    return cursor.fetchall()
+        except Exception as e:
+            print(f"Error retrieving search results: {e}")
+            return None
+
+    def insert_search_result(self, query_id, title, link):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    insert_result_query = """
+                        INSERT INTO Results (query_id, result_text) VALUES (%s, %s)
+                    """
+                    result_text = f"Title: {title}, Link: {link}"
+                    cursor.execute(insert_result_query, (query_id, result_text))
+                    conn.commit()
+                    print("Search result inserted successfully")
+        except Exception as e:
+            print(f"Error inserting search result: {e}")
+
+    def delete_search_result(self, query, result_text):
+        try:
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    delete_result_query = """
+                        DELETE FROM Results 
+                        WHERE query_id = (SELECT query_id FROM Queries WHERE user_id = %s AND query_text = %s) 
+                        AND result_text = %s
+                    """
+                    user_query = (self.user_id, query, result_text)
+                    cursor.execute(delete_result_query, user_query)
+                    conn.commit()
+        except Exception as e:
+            print(f"Error deleting search result: {e}")

@@ -4,6 +4,10 @@ function navigateTo(page) {
     window.location.href = page;
 }
 
+function navigateToHome() {
+    window.location.href = '/';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // User information
     document.getElementById('user-location').textContent = 'Los Angeles, USA';

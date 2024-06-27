@@ -36,7 +36,8 @@ class dbConnector:
                 longitude DECIMAL(9,6),
                 ip VARCHAR(45),
                 weather_data JSON,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (ip)
             );
             """,
             """
@@ -48,7 +49,8 @@ class dbConnector:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (location_id) REFERENCES Location(location_id) ON DELETE SET NULL,
                 UNIQUE KEY (username),
-                INDEX (location_id)
+                INDEX (location_id),
+                INDEX (username)
             );
             """,
             """

@@ -19,8 +19,10 @@
             <span>GoFish</span>
         </div>
         <div class="header-buttons">
-            <button onclick="navigateTo('profile.html')">Profile</button>
-            <button onclick="navigateTo('settings.html')">Settings</button>
+            <button onclick="navigateTo('register')">Register</button>
+            <button onclick="navigateTo('login')">Login</button>
+            <button onclick="navigateTo('settings')">Profile Settings</button>
+            <button onclick="navigateToHome()">Home</button>
         </div>
     </header>
 
@@ -33,7 +35,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 
 </html>
