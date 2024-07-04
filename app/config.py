@@ -4,20 +4,13 @@ import os
 
 class Config:
     # Google Search API
-    GOOGLE_API_KEY = ''
-    GOOGLE_CX = ''
+    GOOGLE_API_KEY = 'AIzaSyDjs_U4wn959j-JSzTjRA6K3S98V73Z1t8'
+    GOOGLE_CX = '928929e517dbc4982'
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'key'
 
     # MySQL: User Database
-    USER_DB_HOST = ''
-    USER_DB_PORT = ''
-    USER_DB_USER = ''
-    USER_DB_PASS = ''
-    USER_DB_NAME = ''
-
-    # MySQL: Knowledgebase Database
-    #KNOW_DB_HOST = ''
-    #KNOW_DB_PORT = ''
-    #KNOW_DB_USER = ''
-    #KNOW_DB_PASS = ''
-    #KNOW_DB_NAME = ''
+    USER_DB_HOST = '194.104.156.210'
+    USER_DB_PORT = '3306'
+    USER_DB_USER = 'u30529_i8EvvPQCAB'
+    USER_DB_PASS = '1BrMMkcomapI9zdW=aeuBMMl'
+    USER_DB_NAME = 's30529_userDB'
